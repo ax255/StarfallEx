@@ -135,7 +135,7 @@ function ENT:Error(err)
 		self:SetColor(Color(255, 0, 0, 255))
 	end
 
-	hook.Run("StarfallError", self, self.owner, CLIENT and LocalPlayer() or false, self.sfdata and self.sfdata.mainfile or "", msg, traceback)
+	hook.Run("StarfallError", self, self.owner, CLIENT and LocalPlayer() or Entity(0), self.sfdata and self.sfdata.mainfile or "", msg, traceback)
 	SF.SendError(self, msg, traceback)
 end
 
@@ -342,14 +342,11 @@ function SF.LinkEnt(self, ent, transmit)
 	end
 	if SERVER and (changed or transmit) then
 		net.Start("starfall_processor_link")
-		net.WriteUInt(self:EntIndex(), 16)
-		net.WriteUInt(self:GetCreationID(), 32)
+		net.WriteReliableEntity(self)
 		if IsValid(ent) then
-			net.WriteUInt(ent:EntIndex(), 16)
-			net.WriteUInt(ent:GetCreationID(), 32)
+			net.WriteReliableEntity(ent)
 		else
-			net.WriteUInt(0, 16)
-			net.WriteUInt(0, 32)
+			net.WriteReliableEntity(Entity(0))
 		end
 		if transmit then net.Send(transmit) else net.Broadcast() end
 	end

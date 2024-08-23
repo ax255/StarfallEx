@@ -130,7 +130,7 @@ hook.Add("StarfallError", "StarfallErrorReport", function(_, owner, client, main
 	if not IsValid(owner) then return end
 	local local_player = LocalPlayer()
 	if owner == local_player then
-		if not client or client == owner then
+		if client:IsWorld() or client == owner then
 			SF.AddNotify(owner, message, "ERROR", 7, "ERROR1")
 		elseif client then
 			if should_notify then
@@ -150,41 +150,25 @@ hook.Add("StarfallError", "StarfallErrorReport", function(_, owner, client, main
 end)
 
 net.Receive("starfall_processor_download", function(len)
-	net.ReadStarfall(nil, function(ok, sfdata)
-		if ok then
-			local proc, owner
-			local function setup()
-				if not IsValid(proc) then return end
-				if not (IsValid(owner) or IsWorld(owner)) then return end
-				sfdata.proc = proc
-				sfdata.owner = owner
-				proc:SetupFiles(sfdata)
-			end
-
-			if sfdata.ownerindex == 0 then
-				owner = game.GetWorld()
-			else
-				SF.WaitForEntity(sfdata.ownerindex, sfdata.ownercreateindex, function(e) owner = e setup() end)
-			end
-			SF.WaitForEntity(sfdata.procindex, sfdata.proccreateindex, function(e) proc = e setup() end)
+	net.ReadStarfall(nil, function(ok, sfdata, err)
+		if ok and IsValid(sfdata.proc) and (IsValid(sfdata.owner) or IsWorld(sfdata.owner)) then
+			sfdata.proc:SetupFiles(sfdata)
+		elseif IsValid(sfdata.proc) and IsValid(sfdata.owner) then
+			sfdata.proc.owner = sfdata.owner
+			sfdata.proc:Error({message = "Failed to download and initialize client: " .. tostring(err), traceback = "" })
 		end
 	end)
 end)
 
 net.Receive("starfall_processor_link", function()
-	local componenti, componentci = net.ReadUInt(16), net.ReadUInt(32)
-	local proci, procci = net.ReadUInt(16), net.ReadUInt(32)
 	local component, proc
 	local function link()
-		if not IsValid(component) then return end
-		if not (IsValid(proc) or proci==0) then return end
-		SF.LinkEnt(component, proc)
+		if component and proc then
+			SF.LinkEnt(component, proc)
+		end
 	end
-
-	SF.WaitForEntity(componenti, componentci, function(e) component = e link() end)
-	if proci~=0 then
-		SF.WaitForEntity(proci, procci, function(e) proc = e link() end)
-	end
+	net.ReadReliableEntity(function(e) component=e link() end)
+	net.ReadReliableEntity(function(e) proc=e link() end)
 end)
 
 net.Receive("starfall_processor_kill", function()
