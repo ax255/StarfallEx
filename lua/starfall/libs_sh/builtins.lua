@@ -16,6 +16,19 @@ else
 	restartCooldown = CreateConVar("sf_restart_cooldown_cl", 5, FCVAR_ARCHIVE, "The cooldown for using restart() on the same chip.", 0.1, 60)
 end
 
+local function GetPermsTable()
+	local perms = {}
+
+	for pid, p in pairs(SF.Permissions.providers) do
+		perms[pid] = {}
+		for id, setting in pairs(p.settings) do
+			perms[pid][id] = p.settingsoptions[setting[3]]
+		end
+	end
+
+	return perms
+end
+
 
 --- Lua os library https://wiki.garrysmod.com/page/Category:os
 -- @name os
@@ -319,6 +332,12 @@ function builtins_library.hasPermission(perm, obj)
 	checkluatype(perm, TYPE_STRING)
 	if not SF.Permissions.privileges[perm] then SF.Throw("Permission doesn't exist", 2) end
 	return haspermission(instance, ounwrap(obj), perm)
+end
+
+--- Returns a table with the settings of all permissions.
+-- @return table The permissions table.Add
+function builtins_library.getPermissions()
+	return instance.Sanitize(GetPermsTable())
 end
 
 if CLIENT then
