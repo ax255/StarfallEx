@@ -19,25 +19,29 @@ function ENT:Initialize()
 	self.inside_sphere_entities = {}
 end
 
-function ENT:SphereModeTouch()
-	local trigger_pos = self:GetPos()
+local ent_meta = FindMetaTable("Entity")
+local vec_meta = FindMetaTable("Vector")
 
-	for i, ent in pairs(self.inside_entities) do
+function ENT:SphereModeTouch()
+	local self_tbl = self:GetTable()
+	local trigger_pos = ent_meta.GetPos(self)
+
+	for i, ent in pairs(self_tbl.inside_entities) do
 		if not ent:IsValid() then continue end
 
-		if self.SphereRadiusSqrt > trigger_pos:DistToSqr(ent:GetPos()) then
-			if not self.inside_sphere_entities[i] then
-				self.inside_sphere_entities[i] = ent
+		if self_tbl.SphereRadiusSqrt > vec_meta.DistToSqr(trigger_pos, ent_meta.GetPos(ent)) then
+			if not self_tbl.inside_sphere_entities[i] then
+				self_tbl.inside_sphere_entities[i] = ent
 
-				if self.sf_starttouch then
-					self.sf_starttouch(ent)
+				if self_tbl.sf_starttouch then
+					self_tbl.sf_starttouch(ent)
 				end
 			end
-		elseif self.inside_sphere_entities[i] then
-			self.inside_sphere_entities[i] = nil
+		elseif self_tbl.inside_sphere_entities[i] then
+			self_tbl.inside_sphere_entities[i] = nil
 
-			if self.sf_endtouch then
-				self.sf_endtouch(ent)
+			if self_tbl.sf_endtouch then
+				self_tbl.sf_endtouch(ent)
 			end
 		end
 	end

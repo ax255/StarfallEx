@@ -2214,6 +2214,19 @@ if SERVER then
 		trigger:SetBoxSize(vunwrap(size))
 	end
 
+	--- Get the box size of a Starfall Trigger
+	-- @server
+	-- @return Vector size Size of the trigger
+	function ents_methods:setTriggerBoxSize()
+		local trigger = getent(self)
+		local trigger_tbl = Ent_GetTable(trigger)
+
+		if not trigger_tbl.IsSFTrigger then SF.Throw("The entity isn't a Starfall Trigger", 2) end
+		checkpermission(instance, trigger, "entities.canTool")
+
+		return vwrap(trigger:GetBoxSize())
+	end
+
 	--- Set the shape mode of a Starfall Trigger
 	-- @server
 	-- @param boolean enable Enable sphere mode
@@ -2226,6 +2239,19 @@ if SERVER then
 		checkluatype(enable, TYPE_BOOL)
 
 		trigger:SetSphereMode(enable)
+	end
+
+	--- Get the trigger sphere mode
+	-- @server
+	-- @return boolean enabled If sphere mode is enabled
+	function ents_methods:setTriggerSphereMode()
+		local trigger = getent(self)
+		local trigger_tbl = Ent_GetTable(trigger)
+
+		if not trigger_tbl.IsSFTrigger then SF.Throw("The entity isn't a Starfall Trigger", 2) end
+		checkpermission(instance, trigger, "entities.canTool")
+
+		return trigger_tbl.SphereMode and true or false
 	end
 
 	--- Set the sphere radius of a Starfall Trigger (require the trigger sphere mode to be enabled)
@@ -2242,6 +2268,19 @@ if SERVER then
 		trigger:SetSphereRadius(radius)
 	end
 
+	--- Get the sphere radius of a Starfall Trigger
+	-- @server
+	-- @return number radius Radius of the trigger
+	function ents_methods:getTriggerSphereRadius()
+		local trigger = getent(self)
+		local trigger_tbl = Ent_GetTable(trigger)
+
+		if not trigger_tbl.IsSFTrigger then SF.Throw("The entity isn't a Starfall Trigger", 2) end
+		checkpermission(instance, trigger, "entities.canTool")
+
+		return trigger:GetSphereRadius(radius)
+	end
+
 	--- Return all the entities inside a Starfall Trigger
 	-- @server
 	-- @return table The inside entities in sequential order
@@ -2254,7 +2293,7 @@ if SERVER then
 
 		local inside_entities = {}
 
-		for _, v in pairs((trigger.SphereMode and trigger.inside_sphere_entities) or trigger.inside_entities) do
+		for _, v in pairs((trigger_tbl.SphereMode and trigger_tbl.inside_sphere_entities) or trigger_tbl.inside_entities) do
 			if not v:IsValid() then continue end
 
 			table.insert(inside_entities, ewrap(v))
@@ -2276,11 +2315,11 @@ if SERVER then
 		if callback then
 			checkluatype(callback, TYPE_FUNCTION)
 
-			trigger.sf_starttouch = function(ent)
+			trigger_tbl.sf_starttouch = function(ent)
 				instance:runFunction(callback, ewrap(ent))
 			end
 		else
-			trigger.sf_starttouch = nil
+			trigger_tbl.sf_starttouch = nil
 		end
 	end
 
@@ -2297,11 +2336,11 @@ if SERVER then
 		if callback then
 			checkluatype(callback, TYPE_FUNCTION)
 
-			trigger.sf_endtouch = function(ent)
+			trigger_tbl.sf_endtouch = function(ent)
 				instance:runFunction(callback, ewrap(ent))
 			end
 		else
-			trigger.sf_starttouch = nil
+			trigger_tbl.sf_starttouch = nil
 		end
 	end
 end
