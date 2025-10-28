@@ -6,6 +6,9 @@ ENT.Author          = "Ax25"
 
 ENT.Spawnable       = false
 ENT.AdminSpawnable  = false
+ENT.DoNotDuplicate = true
+ENT.DisableDuplicator = true
+ENT.PhysgunDisabled = true
 
 ENT.IsSFTrigger = true
 
