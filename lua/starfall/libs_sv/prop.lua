@@ -8,6 +8,7 @@ local Phys_IsValid = FindMetaTable("PhysObj").IsValid
 registerprivilege("prop.create", "Create prop", "Allows the user to create props")
 registerprivilege("prop.createRagdoll", "Create a ragdoll", "Allows the user to create ragdolls")
 registerprivilege("prop.createCustom", "Create custom prop", "Allows the user to create custom props")
+registerprivilege("prop.createTrigger", "Create trigger", "Allows the user to create triggers")
 
 
 local entList = SF.EntManager("props", "props", -1, "The number of props allowed to spawn via Starfall")
@@ -226,6 +227,55 @@ function props_library.createCustom(pos, ang, meshConvexes, frozen)
 	instance:checkCpu()
 
 	return ewrap(propent)
+end
+
+--- Creates a trigger.
+-- @server
+-- @param Vector pos The position to spawn the trigger
+-- @param Angle ang The angles to spawn the trigger
+-- @return Entity The trigger object
+function props_library.createTrigger(pos)
+	pos = SF.clampPos(vunwrap1(pos))
+	ang = aunwrap1(ang)
+
+	checkpermission(instance, nil, "prop.createTrigger")
+
+	local ply = instance.player
+
+	if instance.player ~= SF.Superuser then
+		if not ply:CheckLimit("starfall_trigger") then SF.Throw("Limit of trigger reached!", 2) end
+		if gamemode.Call("PlayerSpawnProp", ply, "starfall_trigger")==false then SF.Throw("Another hook prevented the prop from spawning", 2) end
+
+		plyPropBurst:use(ply, 1)
+		entList:checkuse(ply, 1)
+	end
+
+	local triggerent
+	local ok, err = instance:runExternal(function()
+		triggerent = SF.createTrigger(instance, pos)
+
+		if ply ~= SF.Superuser then
+			gamemode.Call("PlayerSpawnedProp", ply, "starfall_trigger", triggerent)
+
+			if propConfig.undo then
+				undo.Create("starfall_trigger")
+					undo.SetPlayer(ply)
+					undo.AddEntity(triggerent)
+				undo.Finish("Starfall Trigger")
+			end
+			ply:AddCleanup("starfall_trigger", triggerent)
+			ply:AddCount("starfall_trigger", triggerent)
+		end
+	end)
+	if not ok then
+		if Ent_IsValid(triggerent) then triggerent:Remove() end
+		SF.Throw("Failed to create entity (" .. tostring(err) .. ")", 2)
+	end
+
+	entList:register(instance, triggerent)
+	instance:checkCpu()
+
+	return ewrap(triggerent)
 end
 
 local allowed_components = {

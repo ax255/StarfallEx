@@ -2200,5 +2200,110 @@ function ents_methods:getNetworkVars()
 	return istable(ent_tbl.dt) and instance.Sanitize(ent_tbl.GetNetworkVars(ent)) or nil
 end
 
+if SERVER then
+	--- Set the box size of a Starfall Trigger
+	-- @server
+	-- @param Vector size Size of the trigger
+	function ents_methods:setTriggerBoxSize(size)
+		local trigger = getent(self)
+		local trigger_tbl = Ent_GetTable(trigger)
+
+		if not trigger_tbl.IsSFTrigger then SF.Throw("The entity isn't a Starfall Trigger", 2) end
+		checkpermission(instance, trigger, "entities.canTool")
+
+		trigger:SetBoxSize(vunwrap(size))
+	end
+
+	--- Set the shape mode of a Starfall Trigger
+	-- @server
+	-- @param boolean enable Enable sphere mode
+	function ents_methods:setTriggerSphereMode(enable)
+		local trigger = getent(self)
+		local trigger_tbl = Ent_GetTable(trigger)
+
+		if not trigger_tbl.IsSFTrigger then SF.Throw("The entity isn't a Starfall Trigger", 2) end
+		checkpermission(instance, trigger, "entities.canTool")
+		checkluatype(enable, TYPE_BOOL)
+
+		trigger:SetSphereMode(enable)
+	end
+
+	--- Set the sphere radius of a Starfall Trigger (require the trigger sphere mode to be enabled)
+	-- @server
+	-- @param number radius Radius of the trigger
+	function ents_methods:setTriggerSphereRadius(radius)
+		local trigger = getent(self)
+		local trigger_tbl = Ent_GetTable(trigger)
+
+		if not trigger_tbl.IsSFTrigger then SF.Throw("The entity isn't a Starfall Trigger", 2) end
+		checkpermission(instance, trigger, "entities.canTool")
+		checkluatype(radius, TYPE_NUMBER)
+
+		trigger:SetSphereRadius(radius)
+	end
+
+	--- Return all the entities inside a Starfall Trigger
+	-- @server
+	-- @return table The inside entities in sequential order
+	function ents_methods:getInsideEntities()
+		local trigger = getent(self)
+		local trigger_tbl = Ent_GetTable(trigger)
+
+		if not trigger_tbl.IsSFTrigger then SF.Throw("The entity isn't a Starfall Trigger", 2) end
+		checkpermission(instance, trigger, "entities.canTool")
+
+		local inside_entities = {}
+
+		for _, v in pairs((trigger.SphereMode and trigger.inside_sphere_entities) or trigger.inside_entities) do
+			if not v:IsValid() then continue end
+
+			table.insert(inside_entities, ewrap(v))
+		end
+
+		return inside_entities
+	end
+
+	--- Set the StartTouch callback of a Starfall Trigger
+	-- @server
+	-- @param function|nil callback Called when an entity enter the trigger
+	function ents_methods:setTriggerStartTouch(callback)
+		local trigger = getent(self)
+		local trigger_tbl = Ent_GetTable(trigger)
+
+		if not trigger_tbl.IsSFTrigger then SF.Throw("The entity isn't a Starfall Trigger", 2) end
+		checkpermission(instance, trigger, "entities.canTool")
+
+		if callback then
+			checkluatype(callback, TYPE_FUNCTION)
+
+			trigger.sf_starttouch = function(ent)
+				instance:runFunction(callback, ewrap(ent))
+			end
+		else
+			trigger.sf_starttouch = nil
+		end
+	end
+
+	--- Set the EndTouch callback of a Starfall Trigger
+	-- @server
+	-- @param function|nil callback Called when an entity exit the trigger
+	function ents_methods:setTriggerEndTouch(callback)
+		local trigger = getent(self)
+		local trigger_tbl = Ent_GetTable(trigger)
+
+		if not trigger_tbl.IsSFTrigger then SF.Throw("The entity isn't a Starfall Trigger", 2) end
+		checkpermission(instance, trigger, "entities.canTool")
+
+		if callback then
+			checkluatype(callback, TYPE_FUNCTION)
+
+			trigger.sf_endtouch = function(ent)
+				instance:runFunction(callback, ewrap(ent))
+			end
+		else
+			trigger.sf_starttouch = nil
+		end
+	end
+end
 
 end
