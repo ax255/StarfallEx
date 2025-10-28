@@ -14,7 +14,7 @@ ENT.IsSFTrigger = true
 
 ENT.BoxSize = Vector(0, 0, 0)
 ENT.SphereRadius = 0
-ENT.SphereRadiusSqrt = ENT.SphereRadius ^ 2
+ENT.SphereRadiusSqr = ENT.SphereRadius ^ 2
 ENT.SphereMode = false
 
 cleanup.Register("starfall_trigger")
@@ -31,7 +31,7 @@ function ENT:SetupDataTables()
 
 	self:NetworkVarNotify("SphereRadius", function(_, _, old, new)
 		self.SphereRadius = new
-		self.SphereRadiusSqrt = self.SphereRadius ^ 2
+		self.SphereRadiusSqr = self.SphereRadius ^ 2
 		self:UpdateCollisionBounds()
 	end)
 

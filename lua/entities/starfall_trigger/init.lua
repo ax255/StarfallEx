@@ -29,7 +29,7 @@ function ENT:SphereModeTouch()
 	for i, ent in pairs(self_tbl.inside_entities) do
 		if not ent:IsValid() then continue end
 
-		if self_tbl.SphereRadiusSqrt > vec_meta.DistToSqr(trigger_pos, ent_meta.GetPos(ent)) then
+		if self_tbl.SphereRadiusSqr > vec_meta.DistToSqr(trigger_pos, ent_meta.GetPos(ent)) then
 			if not self_tbl.inside_sphere_entities[i] then
 				self_tbl.inside_sphere_entities[i] = ent
 
@@ -52,7 +52,9 @@ local next_think_interval = (engine.TickInterval() / 16) * 100
 function ENT:Think()
 	if self.SphereMode then
 		if self.sf_instance then
-			self.sf_instance:run(function() self:SphereModeTouch() end)
+			local start_time = SysTime()
+			self:SphereModeTouch()
+			self.sf_instance.cpu_total = self.sf_instance.cpu_total + (SysTime() - start_time)
 		else
 			self:SphereModeTouch()
 		end
